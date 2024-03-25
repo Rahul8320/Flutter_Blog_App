@@ -2,6 +2,7 @@ import 'package:blog_app/core/secrets/app_secrets.dart';
 import 'package:blog_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:blog_app/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:blog_app/features/auth/domain/repository/auth_repository.dart';
+import 'package:blog_app/features/auth/domain/usecases/current_user.dart';
 import 'package:blog_app/features/auth/domain/usecases/user_login.dart';
 import 'package:blog_app/features/auth/domain/usecases/user_sign_up.dart';
 import 'package:blog_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -20,34 +21,41 @@ Future<void> initDependencies() async {
 }
 
 void _initAuth() {
-  serviceLocator.registerFactory<IAuthRemoteDataSource>(
-    () => AuthRemoteDataSource(
-      serviceLocator<SupabaseClient>(),
-    ),
-  );
-
-  serviceLocator.registerFactory<IAuthRepository>(
-    () => AuthRepository(
-      serviceLocator<IAuthRemoteDataSource>(),
-    ),
-  );
-
-  serviceLocator.registerFactory(
-    () => UserSignUp(
-      serviceLocator<IAuthRepository>(),
-    ),
-  );
-
-  serviceLocator.registerFactory(
-        () => UserLogin(
-      serviceLocator<IAuthRepository>(),
-    ),
-  );
-
-  serviceLocator.registerLazySingleton(
-    () => AuthBloc(
-      userSignUp: serviceLocator<UserSignUp>(),
-      userLogin: serviceLocator<UserLogin>(),
-    ),
-  );
+  serviceLocator
+    // Data sources
+    ..registerFactory<IAuthRemoteDataSource>(
+      () => AuthRemoteDataSource(
+        serviceLocator<SupabaseClient>(),
+      ),
+    )
+    // Repositories
+    ..registerFactory<IAuthRepository>(
+      () => AuthRepository(
+        serviceLocator<IAuthRemoteDataSource>(),
+      ),
+    )
+    // Usecases
+    ..registerFactory(
+      () => UserSignUp(
+        serviceLocator<IAuthRepository>(),
+      ),
+    )
+    ..registerFactory(
+      () => UserLogin(
+        serviceLocator<IAuthRepository>(),
+      ),
+    )
+    ..registerFactory(
+      () => CurrentUser(
+        serviceLocator<IAuthRepository>(),
+      ),
+    )
+    // Bloc
+    ..registerLazySingleton(
+      () => AuthBloc(
+        userSignUp: serviceLocator<UserSignUp>(),
+        userLogin: serviceLocator<UserLogin>(),
+        currentUser: serviceLocator<CurrentUser>(),
+      ),
+    );
 }
