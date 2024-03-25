@@ -38,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'Sing In.',
+                'Sign In.',
                 style: TextStyle(
                   fontSize: 50,
                   fontWeight: FontWeight.bold,
@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
               const AuthGradientButton(
-                buttonText: "Sing In",
+                buttonText: "Sign In",
               ),
               const SizedBox(height: 20),
               GestureDetector(
