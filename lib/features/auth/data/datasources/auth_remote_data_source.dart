@@ -20,8 +20,9 @@ abstract interface class IAuthRemoteDataSource {
 }
 
 class AuthRemoteDataSource implements IAuthRemoteDataSource {
-  final SupabaseClient supabaseClient;
+  static const String _profileTableName = "profiles";
 
+  final SupabaseClient supabaseClient;
   AuthRemoteDataSource(this.supabaseClient);
 
   @override
@@ -75,7 +76,7 @@ class AuthRemoteDataSource implements IAuthRemoteDataSource {
   Future<UserModel?> getCurrentUserData() async {
     try {
       if (currentUserSession != null) {
-        final userData = await supabaseClient.from('profiles').select().eq(
+        final userData = await supabaseClient.from(_profileTableName).select().eq(
               'id',
               currentUserSession!.user.id,
             );
