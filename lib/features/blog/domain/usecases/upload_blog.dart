@@ -7,7 +7,7 @@ import 'package:blog_app/features/blog/domain/repositories/blog_repository.dart'
 import 'package:fpdart/fpdart.dart';
 
 class UploadBlog implements IUseCase<Blog, UploadBlogParams> {
-  IBlogRepository blogRepository;
+  final IBlogRepository blogRepository;
   UploadBlog(this.blogRepository);
 
   @override
