@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 abstract interface class IBlogRemoteDataSource {
   Future<BlogModel> uploadBlog(BlogModel blog);
   Future<String> uploadBlogImage({required File image, required String blogId});
+  Future<List<BlogModel>> getAllBlogs();
 }
 
 class BlogRemoteDataSource implements IBlogRemoteDataSource {
@@ -19,8 +20,10 @@ class BlogRemoteDataSource implements IBlogRemoteDataSource {
   @override
   Future<BlogModel> uploadBlog(BlogModel blog) async {
     try {
-      final blogData =
-          await supabaseClient.from(_blogTableName).insert(blog.toJson()).select();
+      final blogData = await supabaseClient
+          .from(_blogTableName)
+          .insert(blog.toJson())
+          .select();
 
       return BlogModel.fromJson(blogData.first);
     } catch (e) {
@@ -34,9 +37,30 @@ class BlogRemoteDataSource implements IBlogRemoteDataSource {
     required String blogId,
   }) async {
     try {
-      await supabaseClient.storage.from(_blogImageStorageName).upload(blogId, image);
+      await supabaseClient.storage
+          .from(_blogImageStorageName)
+          .upload(blogId, image);
 
-      return supabaseClient.storage.from(_blogImageStorageName).getPublicUrl(blogId);
+      return supabaseClient.storage
+          .from(_blogImageStorageName)
+          .getPublicUrl(blogId);
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<List<BlogModel>> getAllBlogs() async {
+    try {
+      final blogs = await supabaseClient.from(_blogTableName).select('*, '
+          'profiles (name)');
+      return blogs
+          .map(
+            (blog) => BlogModel.fromJson(blog).copyWith(
+              posterName: blog['profiles']['name'],
+            ),
+          )
+          .toList();
     } catch (e) {
       throw ServerException(e.toString());
     }
