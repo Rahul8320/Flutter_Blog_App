@@ -1,3 +1,4 @@
+import 'package:blog_app/core/constant/error_messages.dart';
 import 'package:blog_app/core/error/exceptions.dart';
 import 'package:blog_app/core/error/failures.dart';
 import 'package:blog_app/core/network/network_checker.dart';
@@ -6,7 +7,6 @@ import 'package:blog_app/core/common/entities/user.dart';
 import 'package:blog_app/features/auth/data/models/user_model.dart';
 import 'package:blog_app/features/auth/domain/repository/auth_repository.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 class AuthRepository implements IAuthRepository {
   final IAuthRemoteDataSource remoteDataSource;
@@ -23,7 +23,7 @@ class AuthRepository implements IAuthRepository {
         final session = remoteDataSource.currentUserSession;
 
         if (session == null) {
-          return left(Failure("User not logged in!"));
+          return left(Failure(ErrorMessages.userNotLoggedIn));
         }
         return right(
           UserModel(
@@ -37,7 +37,7 @@ class AuthRepository implements IAuthRepository {
       final user = await remoteDataSource.getCurrentUserData();
       if (user == null) {
         return left(
-          Failure("User not logged in!"),
+          Failure(ErrorMessages.userNotLoggedIn),
         );
       }
 
@@ -76,13 +76,11 @@ class AuthRepository implements IAuthRepository {
   ) async {
     try {
       if (!await (connectionChecker.isConnected)) {
-        return left(Failure("No internet connection!"));
+        return left(Failure(ErrorMessages.noInternetConnection));
       }
       final user = await fn();
 
       return right(user);
-    } on sb.AuthException catch (e) {
-      return left(Failure(e.message));
     } on ServerException catch (e) {
       return left(Failure(e.message));
     }

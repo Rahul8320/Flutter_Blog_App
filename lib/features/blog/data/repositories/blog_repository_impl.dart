@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:blog_app/core/constant/error_messages.dart';
 import 'package:blog_app/core/error/exceptions.dart';
 import 'package:blog_app/core/error/failures.dart';
 import 'package:blog_app/core/network/network_checker.dart';
@@ -31,7 +32,7 @@ class BlogRepository implements IBlogRepository {
   }) async {
     try {
       if (!await (connectionChecker.isConnected)) {
-        return left(Failure("No internet connection!"));
+        return left(Failure(ErrorMessages.noInternetConnection));
       }
 
       final blogId = const Uuid().v1();

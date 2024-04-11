@@ -1,3 +1,4 @@
+import 'package:blog_app/core/constant/supabase_config.dart';
 import 'package:blog_app/core/error/exceptions.dart';
 import 'package:blog_app/features/auth/data/models/user_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,8 +21,6 @@ abstract interface class IAuthRemoteDataSource {
 }
 
 class AuthRemoteDataSource implements IAuthRemoteDataSource {
-  static const String _profileTableName = "profiles";
-
   final SupabaseClient supabaseClient;
   AuthRemoteDataSource(this.supabaseClient);
 
@@ -43,6 +42,8 @@ class AuthRemoteDataSource implements IAuthRemoteDataSource {
       }
       return UserModel.formJson(response.user!.toJson())
           .copyWith(email: response.user!.email);
+    } on AuthException catch (e) {
+      throw ServerException(e.message);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -67,6 +68,8 @@ class AuthRemoteDataSource implements IAuthRemoteDataSource {
       }
       return UserModel.formJson(response.user!.toJson())
           .copyWith(email: response.user!.email);
+    } on AuthException catch (e) {
+      throw ServerException(e.message);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -76,10 +79,11 @@ class AuthRemoteDataSource implements IAuthRemoteDataSource {
   Future<UserModel?> getCurrentUserData() async {
     try {
       if (currentUserSession != null) {
-        final userData = await supabaseClient.from(_profileTableName).select().eq(
-              'id',
-              currentUserSession!.user.id,
-            );
+        final userData =
+            await supabaseClient.from(SupabaseConfigs.authTableName).select().eq(
+                  'id',
+                  currentUserSession!.user.id,
+                );
         return UserModel.formJson(userData.first)
             .copyWith(email: currentUserSession!.user.email);
       }

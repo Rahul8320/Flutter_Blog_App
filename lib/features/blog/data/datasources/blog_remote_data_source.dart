@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:blog_app/core/constant/supabase_config.dart';
 import 'package:blog_app/core/error/exceptions.dart';
 import 'package:blog_app/features/blog/data/models/blog_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,9 +12,6 @@ abstract interface class IBlogRemoteDataSource {
 }
 
 class BlogRemoteDataSource implements IBlogRemoteDataSource {
-  static const String _blogTableName = "blogs";
-  static const String _blogImageStorageName = "blog_images";
-
   SupabaseClient supabaseClient;
   BlogRemoteDataSource(this.supabaseClient);
 
@@ -21,12 +19,14 @@ class BlogRemoteDataSource implements IBlogRemoteDataSource {
   Future<BlogModel> uploadBlog(BlogModel blog) async {
     try {
       final blogData = await supabaseClient
-          .from(_blogTableName)
+          .from(SupabaseConfigs.blogTableName)
           .insert(blog.toJson())
           .select();
 
       return BlogModel.fromJson(blogData.first);
-    } catch (e) {
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
+    }  catch (e) {
       throw ServerException(e.toString());
     }
   }
@@ -38,12 +38,14 @@ class BlogRemoteDataSource implements IBlogRemoteDataSource {
   }) async {
     try {
       await supabaseClient.storage
-          .from(_blogImageStorageName)
+          .from(SupabaseConfigs.imageContainerName)
           .upload(blogId, image);
 
       return supabaseClient.storage
-          .from(_blogImageStorageName)
+          .from(SupabaseConfigs.imageContainerName)
           .getPublicUrl(blogId);
+    } on StorageException catch (e) {
+      throw ServerException(e.message);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -52,15 +54,17 @@ class BlogRemoteDataSource implements IBlogRemoteDataSource {
   @override
   Future<List<BlogModel>> getAllBlogs() async {
     try {
-      final blogs = await supabaseClient.from(_blogTableName).select('*, '
-          'profiles (name)');
+      final blogs = await supabaseClient.from(SupabaseConfigs.blogTableName).select('*, '
+          '${SupabaseConfigs.authTableName} (name)');
       return blogs
           .map(
             (blog) => BlogModel.fromJson(blog).copyWith(
-              posterName: blog['profiles']['name'],
+              posterName: blog[SupabaseConfigs.authTableName]['name'],
             ),
           )
           .toList();
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
     } catch (e) {
       throw ServerException(e.toString());
     }
